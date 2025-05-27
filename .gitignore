@@ -1,0 +1,14 @@
+# Ambiente virtual
+env/
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+
+# Arquivos de dados
+*.csv
+
+# Arquivos temporários comuns
+*.log
+*.tmp
+.DS_Store
