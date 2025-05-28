@@ -11,38 +11,54 @@ caminho_progresso = './csv/df_mx_com_telefone.csv'
 checkpoint_interval = 5
 delay_entre_reqs = 0.5
 
-def extrair_telefone(clavecct):
+def extrair_dados_escola(clavecct):
     url = f"https://nte.mx/escuela/{clavecct}/a/"
     print(f"🔗 Acessando: {url}")
     try:
         response = requests.get(url, timeout=(5, 10))
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
-        strong_tag = soup.find('strong', string=lambda text: text and 'Teléfono' in text)
-        if strong_tag and strong_tag.next_sibling:
-            telefone = strong_tag.next_sibling.strip()
+
+        # Telefone
+        strong_tel = soup.find('strong', string=lambda text: text and 'Teléfono' in text)
+        telefone = None
+        if strong_tel and strong_tel.next_sibling:
+            telefone = strong_tel.next_sibling.strip()
             if telefone == 'No disponible':
-                return None
-            return telefone
-        print("❌ Tag 'Teléfono' não encontrada.")
-        return None
+                telefone = None
+
+        # Nome da escola
+        meta_tag = soup.find('meta', property='url')
+        nome_escola = None
+        if meta_tag and 'content' in meta_tag.attrs:
+            partes = meta_tag['content'].strip('/').split('/')
+            if len(partes) >= 3:
+                nome_escola = partes[-1].replace('%20', ' ')
+
+        # Endereço da escola
+        strong_endereco = soup.find('strong', string=lambda text: text and 'Dirección' in text)
+        endereco = None
+        if strong_endereco and strong_endereco.next_sibling:
+            endereco = strong_endereco.next_sibling.strip()
+            if endereco == 'No disponible':
+                endereco = None
+
+        return telefone, nome_escola, endereco
     except requests.exceptions.RequestException as e:
         print(f"⚠️ Erro na requisição: {e}")
-        raise e  # relança para ser tratado no script principal
+        raise e  
 
 def processar_linhas(df, indices, delay=delay_entre_reqs, checkpoint_interval=checkpoint_interval, caminho_progresso=caminho_progresso):
-    """
-    Processa as linhas indicadas no dataframe, atualizando telefone e status.
-    Salva progresso a cada checkpoint_interval linhas, incluindo os erros.
-    """
     for count, i in enumerate(indices, start=1):
         print(f"🔄 Processando linha {i + 1}")
         clave = df.at[i, 'clavecct']
         try:
-            telefone = extrair_telefone(clave)
+            telefone, nome_escola, endereco = extrair_dados_escola(clave)
             df.at[i, 'telefone_scraping'] = telefone
+            df.at[i, 'nome_escola'] = nome_escola
+            df.at[i, 'endereco_escola_scrapingtttttt'] = endereco
             df.at[i, 'status_requisicao'] = 'sucesso'
-            print(f"📞 Telefone da linha {i + 1}: {telefone}")
+            print(f"📞 {telefone} | 🏫 {nome_escola} | 📍 {endereco}")
             print(f"✔️ Requisição bem-sucedida na linha {i + 1}")
         except Exception:
             df.at[i, 'status_requisicao'] = 'erro'
@@ -54,10 +70,9 @@ def processar_linhas(df, indices, delay=delay_entre_reqs, checkpoint_interval=ch
 
         time.sleep(delay)
 
-    # Salva tudo no final (com erros também)
     df.to_csv(caminho_progresso, index=False)
     print("✅ Execução finalizada e progresso salvo.")
-    return df, None  # mantendo compatibilidade
+    return df, None  
 
 def main():
     pd.set_option('display.max_columns', None)
@@ -65,23 +80,29 @@ def main():
     pd.set_option('display.max_colwidth', None)
     pd.set_option('display.width', None)
 
-    df = pd.read_csv(caminho_base)
+    df = pd.read_csv(caminho_base, dtype={'clavecct': str})
     colunas_desejadas = ['clavecct']
     df_mexico = df[colunas_desejadas]
     df_mx = df_mexico.copy()
-    df_mx = df_mx.head(20)  # Ajuste para teste, pode remover
+    df_mx = df_mx.head(20)  # Ajuste para teste
 
     if 'telefone_scraping' not in df_mx.columns:
         df_mx['telefone_scraping'] = None
+    if 'nome_escola' not in df_mx.columns:
+        df_mx['nome_escola'] = None
+    if 'endereco_escola_scrapingtttttt' not in df_mx.columns:
+        df_mx['endereco_escola_scrapingtttttt'] = None
     if 'status_requisicao' not in df_mx.columns:
         df_mx['status_requisicao'] = 'pendente'
 
     if os.path.exists(caminho_progresso):
-        df_salvo = pd.read_csv(caminho_progresso)
-        if 'telefone_scraping' not in df_salvo.columns:
-            df_salvo['telefone_scraping'] = None
-        if 'status_requisicao' not in df_salvo.columns:
-            df_salvo['status_requisicao'] = 'pendente'
+        df_salvo = pd.read_csv(
+            caminho_progresso, 
+            dtype={'clavecct': str, 'telefone_scraping': object, 'nome_escola': object, 'endereco_escola_scrapingtttttt': object}
+        )
+        for col in ['telefone_scraping', 'nome_escola', 'endereco_escola_scrapingtttttt', 'status_requisicao']:
+            if col not in df_salvo.columns:
+                df_salvo[col] = None if col != 'status_requisicao' else 'pendente'
         df_mx.update(df_salvo)
 
     pendentes = df_mx.index[df_mx['status_requisicao'] == 'pendente'].tolist()

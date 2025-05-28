@@ -4,7 +4,7 @@ from main import processar_linhas
 caminho_progresso = './csv/df_mx_com_telefone.csv'
 
 def main():
-    df = pd.read_csv(caminho_progresso)
+    df = pd.read_csv(caminho_progresso, dtype={'clavecct': str, 'telefone_scraping': object})
 
     # Pega só índices das linhas com erro
     indices_erro = df.index[df['status_requisicao'] == 'erro'].tolist()
