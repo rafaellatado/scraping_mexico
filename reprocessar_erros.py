@@ -1,7 +1,7 @@
 import pandas as pd
 from main import processar_linhas
 
-caminho_progresso = './csv/df_mx_com_telefone.csv'
+caminho_progresso = './csv/df_mx_com_telefone_parte_1.csv'
 
 def main():
     df = pd.read_csv(caminho_progresso, dtype={'clavecct': str, 'telefone_scraping': object})

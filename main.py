@@ -5,10 +5,10 @@ import time
 import os
 
 # Configurações
-caminho_base = './csv/ESTANDAR_BASICA_I2324.csv'
-caminho_progresso = './csv/df_mx_com_telefone.csv'
+caminho_base = './csv/df_mx_com_telefone_parte_1.csv'
+caminho_progresso = './csv/df_mx_com_telefone_parte_1.csv'
 
-checkpoint_interval = 5
+checkpoint_interval = 50
 delay_entre_reqs = 0.5
 
 def extrair_dados_escola(clavecct):
@@ -56,7 +56,7 @@ def processar_linhas(df, indices, delay=delay_entre_reqs, checkpoint_interval=ch
             telefone, nome_escola, endereco = extrair_dados_escola(clave)
             df.at[i, 'telefone_scraping'] = telefone
             df.at[i, 'nome_escola'] = nome_escola
-            df.at[i, 'endereco_escola_scrapingtttttt'] = endereco
+            df.at[i, 'endereco_escola_scraping'] = endereco
             df.at[i, 'status_requisicao'] = 'sucesso'
             print(f"📞 {telefone} | 🏫 {nome_escola} | 📍 {endereco}")
             print(f"✔️ Requisição bem-sucedida na linha {i + 1}")
@@ -84,23 +84,23 @@ def main():
     colunas_desejadas = ['clavecct']
     df_mexico = df[colunas_desejadas]
     df_mx = df_mexico.copy()
-    df_mx = df_mx.head(20)  # Ajuste para teste
+    #df_mx = df_mx.head(20)  # Ajuste para teste
 
     if 'telefone_scraping' not in df_mx.columns:
         df_mx['telefone_scraping'] = None
     if 'nome_escola' not in df_mx.columns:
         df_mx['nome_escola'] = None
-    if 'endereco_escola_scrapingtttttt' not in df_mx.columns:
-        df_mx['endereco_escola_scrapingtttttt'] = None
+    if 'endereco_escola_scraping' not in df_mx.columns:
+        df_mx['endereco_escola_scraping'] = None
     if 'status_requisicao' not in df_mx.columns:
         df_mx['status_requisicao'] = 'pendente'
 
     if os.path.exists(caminho_progresso):
         df_salvo = pd.read_csv(
             caminho_progresso, 
-            dtype={'clavecct': str, 'telefone_scraping': object, 'nome_escola': object, 'endereco_escola_scrapingtttttt': object}
+            dtype={'clavecct': str, 'telefone_scraping': object, 'nome_escola': object, 'endereco_escola_scraping': object}
         )
-        for col in ['telefone_scraping', 'nome_escola', 'endereco_escola_scrapingtttttt', 'status_requisicao']:
+        for col in ['telefone_scraping', 'nome_escola', 'endereco_escola_scraping', 'status_requisicao']:
             if col not in df_salvo.columns:
                 df_salvo[col] = None if col != 'status_requisicao' else 'pendente'
         df_mx.update(df_salvo)
