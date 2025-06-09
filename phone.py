@@ -93,7 +93,7 @@ def processar_linha(row, colns, lada_dict):
 
 if __name__ == "__main__":
     lada_dict, lada_df = load_ladas_mx('./csv/ladas_mexico.csv')
-    df_principal = pd.read_csv('./csv/t.csv', dtype=str)
+    df_principal = pd.read_csv('./csv/merged_df_high_mx_1.csv', dtype=str)
 
     phone_colunas = [
         'telefone_scraping',
