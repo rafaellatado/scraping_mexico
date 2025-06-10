@@ -63,12 +63,13 @@ def processar_linha(row, colns, lada_dict):
     estado = row.get("n_entidad")
     cidade = row.get("city")
 
-    resultados = {f'{colns}_verificado': telefone}
-
-    if pd.isna(telefone) or not str(telefone).strip():
-        return pd.Series(resultados)
-
     clean_number = re.sub(r'\D', '', str(telefone))
+    resultados = {f'{colns}_verificado': None}
+
+    if not clean_number.strip():
+        validado = verify_phonenumber(clean_number)
+        resultados[f'{colns}_verificado'] = validado
+        return pd.Series(resultados)
 
     if len(clean_number) in (7, 8):
         ladas = get_lada_mx(lada_dict, cidade, estado)
@@ -87,7 +88,9 @@ def processar_linha(row, colns, lada_dict):
     validado = verify_phonenumber(clean_number)
     if validado:
         resultados[f'{colns}_verificado'] = validado
-
+    else:
+        resultados[f'{colns}_verificado'] = validado
+        
     return pd.Series(resultados)
 
 
