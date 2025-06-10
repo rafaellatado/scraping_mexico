@@ -71,7 +71,7 @@ def processar_linha(row, colns, lada_dict):
         resultados[f'{colns}_verificado'] = validado
         return pd.Series(resultados)
 
-    if len(clean_number) in (7, 8):
+    if len(clean_number) == 7 or len(clean_number) == 8:
         ladas = get_lada_mx(lada_dict, cidade, estado)
         if ladas:
             for lada_opcao in ladas:
@@ -96,7 +96,7 @@ def processar_linha(row, colns, lada_dict):
 
 if __name__ == "__main__":
     lada_dict, lada_df = load_ladas_mx('./csv/ladas_mexico.csv')
-    df_principal = pd.read_csv('./csv/merged_df_high_mx_1.csv', dtype=str)
+    df_principal = pd.read_csv('./csv/tmp/merged_df_high_mx_1.csv', dtype=str)
 
     phone_colunas = [
         'telefone_scraping',
